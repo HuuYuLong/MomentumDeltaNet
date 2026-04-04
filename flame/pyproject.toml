@@ -1,0 +1,34 @@
+[project]
+name = "flame"
+dynamic = ["version"]
+description = "A minimal training framework for scaling FLA models"
+readme = "README.md" 
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+dependencies = [ 
+    'torch>=2.5',
+    'torchdata',
+    'transformers>=4.45.0',
+    'triton>=3.0',
+    'datasets>=3.3.0',
+    'einops',
+    'ninja',
+    'wandb',
+    'tiktoken',
+    'tensorboard',
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "ninja", "torch"]
+
+[tool.isort]
+line_length = 127
+multi_line_output = 3
