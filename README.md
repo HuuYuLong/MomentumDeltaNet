@@ -87,7 +87,7 @@ print(y.shape)
 
 The `flame/configs/` directory contains all model configurations for different architectures and sizes.
 
-The `flame/training_scripts/` directory contains training scripts for various models and ablation studies.
+The `flame/training_scripts/` directory contains training scripts for various models.
 
 A typical reproducible command is:
 
