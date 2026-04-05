@@ -4,7 +4,7 @@ This repository contains the anonymized code package for the submitted paper. Al
 
 ## Contents
 
-The layer implementation and training framework are mainly based on the open-source projects `flash-linear-attention` and `flame`. This codebase mainly includes:
+The layer implementation, triton kernel implementation and training framework are mainly based on the great open-source projects `flash-linear-attention` and `flame`. This codebase mainly includes:
 
 - `flash-linear-attention/`: Main implementation of linear-attention layers, fused modules, and model definitions. Includes Triton kernels for high-performance computation.
 - `flame/`: Training and experiment management framework. Contains all model configurations and training scripts for running experiments.
@@ -102,4 +102,3 @@ Before training, please check and replace `--model.tokenizer_path` and `--traini
 
 - This repository contains anonymized code used for paper submission.
 - The codebase has been sanitized to remove author names, emails, and repository URLs.
-- Do not use any repository links or personal contact information when citing or sharing this anonymous package.
