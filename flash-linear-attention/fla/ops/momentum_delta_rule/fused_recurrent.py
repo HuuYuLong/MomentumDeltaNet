@@ -289,73 +289,68 @@ def fused_recurrent_mode_rule(
     output_final_state: bool = False,
     cu_seqlens: Optional[torch.LongTensor] = None,
     use_qk_l2norm_in_kernel: bool = True,
-    use_p_times_alpha: bool = False,
+    use_p_times_alpha: bool = True,
 ) -> tuple[torch.Tensor, torch.Tensor | None]:
     r"""
     Args:
         q (torch.Tensor):
-            queries of shape `[B, T, H, K]`.
+            Queries of shape `[B, T, H, K]`.
         k (torch.Tensor):
-            keys of shape `[B, T, H, K]`.
+            Keys of shape `[B, T, H, K]`.
         v (torch.Tensor):
-            values of shape `[B, T, HV, V]`.
-            GVA is applied if `HV > H`.
-        p (torch.Tensor):
-            auxiliary keys of shape `[B, T, H, K]`.
-        g (torch.Tensor):
-            g (decays) of shape `[B, T, HV]`.
-        beta (torch.Tensor):
-            betas of shape `[B, T, HV]`.
-        scale (Optional[int]):
-            Scale factor for the RetNet attention scores.
-            If not provided, it will default to `1 / sqrt(K)`. Default: `None`.
+            Values of shape `[B, T, H, V]`.
+        log_alpha (torch.Tensor):
+            Log-scale coefficients of shape `[B, T, H]`.
+        log_mu (torch.Tensor):
+            Log-decay coefficients of shape `[B, T, H]`.
+        p (torch.Tensor, optional):
+            Auxiliary keys of shape `[B, T, H, K]`. Defaults to `k` when None.
+        beta (torch.Tensor, optional):
+            Forget gate coefficients of shape `[B, T, H]`. Defaults to ones when None.
+        eta (torch.Tensor, optional):
+            Per-token scaling factors of shape `[B, T, H]`. Defaults to ones when None.
+        scale (Optional[float]):
+            Scale factor for attention scores. If not provided, it defaults to `1 / sqrt(K)`.
         initial_state (Optional[torch.Tensor]):
-            Initial state of shape `[N, HV, K, V]` for `N` input sequences.
-            For equal-length input sequences, `N` equals the batch size `B`.
-            Default: `None`.
-        output_final_state (Optional[bool]):
-            Whether to output the final state of shape `[N, HV, K, V]`. Default: `False`.
-        cu_seqlens (torch.LongTensor):
-            Cumulative sequence lengths of shape `[N+1]` used for variable-length training,
-            consistent with the FlashAttention API.
+            Initial state tensor of shape `[2, N, H, K, V]`, where the first element is `S`
+            and the second element is `M`. For equal-length inputs, `N` equals batch size `B`.
+        output_final_state (bool, optional):
+            Whether to return the final state. Default: `False`.
+        cu_seqlens (Optional[torch.LongTensor]):
+            Cumulative sequence lengths of shape `[N+1]` for variable-length training.
+        use_qk_l2norm_in_kernel (bool, optional):
+            Whether to apply L2 normalization to q, k, and p before the kernel call.
+        use_p_times_alpha (bool, optional):
+            Whether to scale `p` by `exp(log_alpha)` internally. 
+            If set to 'True', the input 'p' = `alpha * Norm(k)`, 
+            where `alpha` is a learnable scalar and `Norm(k)` is the L2 normalization of `k`.
 
     Returns:
         o (torch.Tensor):
-            Outputs of shape `[B, T, HV, V]`.
-        final_state (torch.Tensor):
-            Final state of shape `[N, HV, K, V]` if `output_final_state=True` else `None`.
+            Output tensor of shape `[B, T, H, V]`.
+        final_state (Optional[torch.Tensor]):
+            Final state tensor of shape `[2, N, H, K, V]` when `output_final_state=True`, otherwise `None`.
 
     Examples::
         >>> import torch
         >>> import torch.nn.functional as F
         >>> from einops import rearrange
-        >>> from fla.ops.momentum_delta_rule import fused_recurrent_mode_rule
-        # inputs with equal lengths
-        >>> B, T, H, HV, K, V = 4, 2048, 4, 8, 512, 512
-        >>> q = torch.randn(B, T, H, K, device='cuda')
-        >>> k = F.normalize(torch.randn(B, T, H, K, device='cuda'), p=2, dim=-1)
-        >>> v = torch.randn(B, T, HV, V, device='cuda')
-        >>> b = torch.rand(H, dtype=torch.bfloat16, device='cuda').sigmoid()
-        >>> p = k * b[:, None]
-        >>> log_alpha = F.logsigmoid(torch.rand(B, T, HV, device='cuda'))
-        >>> log_mu = F.logsigmoid(torch.rand(B, T, HV, device='cuda'))
-        >>> beta = torch.rand(B, T, HV, device='cuda').sigmoid()
-        >>> h0 = torch.randn(B, HV, K, V, device='cuda')
+        >>> B, T, H, K, V = 4, 2048, 4, 512, 512
+        >>> q = torch.randn(B, T, H, K, dtype=torch.bfloat16, device='cuda')
+        >>> k = F.normalize(torch.randn(B, T, H, K, dtype=torch.bfloat16, device='cuda'), p=2, dim=-1)
+        >>> v = torch.randn(B, T, H, V, dtype=torch.bfloat16, device='cuda')
+        >>> log_alpha = -torch.rand(B, T, H, dtype=torch.bfloat16, device='cuda')
+        >>> log_mu = -torch.rand(B, T, H, dtype=torch.bfloat16, device='cuda')
+        >>> beta = torch.rand(B, T, H, dtype=torch.bfloat16, device='cuda').sigmoid()
+        >>> eta = torch.rand(B, T, H, dtype=torch.bfloat16, device='cuda')
+        >>> h0 = torch.randn(2, B, H, K, V, dtype=torch.bfloat16, device='cuda')
         >>> o, ht = fused_recurrent_mode_rule(
-            q, k, v, p, g, beta,
-            initial_state=h0,
-            output_final_state=True
-        )
-        # for variable-length inputs, the batch size `B` is expected to be 1 and `cu_seqlens` is required
-        >>> q, k, v, p, g, beta = map(lambda x: rearrange(x, 'b t ... -> 1 (b t) ...'), (q, k, v, p, g, beta))
-        # for a batch with 4 sequences, `cu_seqlens` with 5 start/end positions are expected
-        >>> cu_seqlens = q.new_tensor([0, 2048, 4096, 6144, 8192], dtype=torch.long)
-        >>> o_var, ht_var = fused_recurrent_mode_rule(
-            q, k, v, p, g, beta,
-            initial_state=h0,
-            output_final_state=True,
-            cu_seqlens=cu_seqlens
-        )
+        ...     q, k, v, log_alpha, log_mu,
+        ...     beta=beta,
+        ...     eta=eta,
+        ...     initial_state=h0,
+        ...     output_final_state=True
+        ... )
     """
 
     if scale is None:

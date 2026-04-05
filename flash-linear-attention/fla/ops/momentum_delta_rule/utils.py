@@ -8,7 +8,6 @@ import triton.language as tl
 from fla.ops.utils.index import prepare_chunk_indices
 
 NUM_WARPS = [1, 2, 4, 8, 16]
-# NUM_WARPS = [ 4]
 
 @triton.heuristics({
     'IS_VARLEN': lambda args: args['cu_seqlens'] is not None
@@ -16,7 +15,6 @@ NUM_WARPS = [1, 2, 4, 8, 16]
 @triton.autotune(
     configs=[
         triton.Config({}, num_warps=num_warps)
-        # for num_warps in [1, 2, 4, 8, 16]
         for num_warps in NUM_WARPS
     ],
     key=['B', 'H', 'BT', 'IS_VARLEN']
@@ -194,19 +192,6 @@ def chunk_mode_rule_cumsum_scalar_bwd_kernel(
 
     b_dlog_alpha = tl.cumsum(b_dlog_beta, axis=0, reverse=True)
     b_dlog_mu = tl.cumsum(b_dlog_mu_cum, axis=0, reverse=True)
-
-    # [BT]
-    """
-    b_dg:   1,2,3,4
-    b_dg0:  0,1,2,3
-    b_temp: 0,1,3,6
-    b_dz:   6
-    b_dgr:  6,5,3,0
-    """
-    # b_temp = tl.cumsum(b_dg0, axis=0)
-    # b_dz = tl.sum(b_dg0, axis=0)
-    # b_dgr = -b_temp + b_dz[None]
-    # dbeta, dlog_alpha, dlog_mu
 
     p_dlog_alpha = tl.make_block_ptr(dlog_alpha + bos * H + i_h, (T,), (H,), (i_t * BT,), (BT,), (0,))
     p_dlog_mu = tl.make_block_ptr(dlog_mu + bos * H + i_h, (T,), (H,), (i_t * BT,), (BT,), (0,))

@@ -16,15 +16,13 @@ NUM_WARPS = [2, 4, 8]
 NUM_WARPS = [2, 4]
 
 @triton.heuristics({
-    'IS_VARLEN': lambda args: args['cu_seqlens'] is not None,
-    # 'USE_G': lambda args: args['log_a_cum'] is not None
+    'IS_VARLEN': lambda args: args['cu_seqlens'] is not None, 
 })
 @triton.autotune(
     configs=[
         triton.Config({'BK': BK}, num_warps=num_warps, num_stages=num_stages)
         for BK in [16, 32, 64]
         for num_warps in [2, 4, 8]
-        # for num_warps in NUM_WARPS
         for num_stages in [2, 3, 4]
     ],
     key=['H', 'K', 'BT', 'IS_VARLEN' ],

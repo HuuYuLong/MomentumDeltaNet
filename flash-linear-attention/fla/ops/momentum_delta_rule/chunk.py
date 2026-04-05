@@ -424,17 +424,6 @@ def chunk_mode_rule(     # MODE: MOmentum DElta
         ...     initial_state=h0,
         ...     output_final_state=True
         ... )
-        # For variable-length inputs, batch size must be 1 and `cu_seqlens` is required.
-        >>> q, k, v, beta, eta = map(lambda x: rearrange(x, 'b t ... -> 1 (b t) ...'), (q, k, v, beta, eta))
-        >>> cu_seqlens = q.new_tensor([0, 2048, 4096, 6144, 8192], dtype=torch.long)
-        >>> o_var, ht_var = chunk_mode_rule(
-        ...     q, k, v, log_alpha, log_mu,
-        ...     beta=beta,
-        ...     eta=eta,
-        ...     initial_state=h0,
-        ...     output_final_state=True,
-        ...     cu_seqlens=cu_seqlens
-        ... )
     """
     # if initial_M is not None and initial_S is not None:
     #     assert initial_S.shape == initial_M.shape

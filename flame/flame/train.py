@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 import sys
 # os.replace(temp_path, filepath)
-# print(sys.path)   ## 查看环境变量
+# print(sys.path)    
 sys.path.append(r"~/project/flash-linear-attention")   
 
 import json

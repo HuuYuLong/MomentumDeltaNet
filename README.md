@@ -22,19 +22,19 @@ The repository includes the key implementations of the stepwise momentum delta r
    - Suitable for testing and debugging
 
 2. **Triton Kernel Implementation** ([fla/ops/momentum_delta_rule/chunk.py](flash-linear-attention/fla/ops/momentum_delta_rule/chunk.py))
-   - Function: `chunk_mode_rule()` (and corresponding backward pass)
+   - Function: `chunk_mode_rule()`: Supports chunkwise forward and backward passes
+   - Function: `fused_recurrent_mode_rule()`: Supports recurrent forward pass (in `fused_recurrent.py`)
    - High-performance CUDA kernel implementation using Triton
-   - Used in production training
 
 3. **Momentum DeltaNet Layer Implementation** ([fla/layers/momentum_deltanet.py](flash-linear-attention/fla/layers/momentum_deltanet.py))
-   - Complete model layer combining the kernel implementations
-   - Integrates with HuggingFace transformers API
+   - Complete model layer combining Triton kernel implementations with gate constraints
+   - Integrates with HuggingFace Transformers API
    - Supports both chunk and recurrent inference modes
 
 ### Configuration and Training Scripts
 
-1. **Model Configurations** ([flame/configs](flame/configs)): JSON files defining model architectures, hyperparameters
-2. **Training Scripts** ([flame/training_scripts](flame/training_scripts)): Bash scripts for launching training jobs with and training configurations.
+1. **Model Configurations** ([flame/configs](flame/configs)): JSON files defining model architectures and hyperparameters
+2. **Training Scripts** ([flame/training_scripts](flame/training_scripts)): Bash scripts for launching training jobs with specific configurations
 
 
 ## Setup
@@ -97,8 +97,6 @@ bash training_scripts/training_mdn_400M.sh
 ```
 
 Before training, please check and replace `--model.tokenizer_path` and `--training.dataset` with the actual tokenizer and dataset paths used for reproduction. Ensure the dataset is preprocessed and tokenized appropriately.
-
-
 
 ## Notes
 
