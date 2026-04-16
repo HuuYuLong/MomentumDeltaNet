@@ -21,6 +21,7 @@
     "use_output_correction": true,
     "use_p_times_alpha": true,
     "use_short_conv": true,
+    "tau_factor": 8,
     "min_log_mu": -1.0, 
     "vocab_size": 50257
 }

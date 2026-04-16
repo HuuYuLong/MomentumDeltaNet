@@ -1,0 +1,32 @@
+#!/bin/bash
+
+bash train.sh \
+  --job.config_file flame/models/fla.toml \
+  --job.dump_folder exp/comba-400M-4K-15B-gpt2tokenizer/batch8.context4096.warmup1024.update2.steps30720.lr3e-4.cosine \
+  --model.config configs/comba_400M.json \
+  --model.tokenizer_path ~/datasets/gpt2-tokenizer  \
+  --optimizer.name AdamW \
+  --optimizer.eps 1e-15 \
+  --optimizer.lr 3e-4 \
+  --lr_scheduler.warmup_steps 1024 \
+  --lr_scheduler.lr_min 0.1 \
+  --lr_scheduler.decay_type cosine \
+  --training.batch_size 8 \
+  --training.seq_len 4096 \
+  --training.gradient_accumulation_steps 2 \
+  --training.steps 30720 \
+  --training.max_norm 1.0 \
+  --training.skip_nan_inf \
+  --training.dataset ~/datasets/SlimPajama-627B_0_8/SlimPajama-627B \
+  --training.dataset_split train \
+  --training.num_workers 32 \
+  --training.prefetch_factor 2 \
+  --training.seed 42 \
+  --training.compile \
+  --checkpoint.interval 2048 \
+  --checkpoint.load_step -1 \
+  --checkpoint.keep_latest_k 2 \
+  --metrics.log_freq 1 \
+  --metrics.enable_tensorboard \
+  --training.streaming \
+  --training.tensor_parallel_degree 1 \
