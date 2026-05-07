@@ -99,10 +99,6 @@ bash training_scripts/training_mdn_400M.sh
 
 Before training, please check and replace `--model.tokenizer_path` and `--training.dataset` with the actual tokenizer and dataset paths used for reproduction. Ensure the dataset is preprocessed and tokenized appropriately.
 
-## Notes
-
-- This repository contains the code for the ICML 2026 paper "MDN: Parallelizing Stepwise Momentum for Delta Linear Attention".
-- The codebase has been sanitized to remove author names, emails, and repository URLs.
 
 ## Acknowledgments
 
