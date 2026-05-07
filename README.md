@@ -1,10 +1,11 @@
-# Anonymized Code Submission
+# MDN: Parallelizing Stepwise Momentum for Delta Linear Attention [ICML'26]
 
-This repository contains the anonymized code package for the submitted paper. All identifying author and organization information has been removed from the package metadata and documentation.
+Code release for **MDN: Parallelizing Stepwise Momentum for Delta Linear Attention**, accepted at **ICML 2026**.
+The implementation will be integrated into [flash-linear-attention](https://github.com/fla-org/flash-linear-attention) for broader community use.
 
 ## Contents
 
-The layer implementation, triton kernel implementation and training framework are mainly based on the great open-source projects `flash-linear-attention` and `flame`. This codebase mainly includes:
+This codebase mainly includes:
 
 - `flash-linear-attention/`: Main implementation of linear-attention layers, fused modules, and model definitions. Includes Triton kernels for high-performance computation.
 - `flame/`: Training and experiment management framework. Contains all model configurations and training scripts for running experiments.
@@ -100,5 +101,11 @@ Before training, please check and replace `--model.tokenizer_path` and `--traini
 
 ## Notes
 
-- This repository contains anonymized code used for paper submission.
+- This repository contains the code for the ICML 2026 paper "MDN: Parallelizing Stepwise Momentum for Delta Linear Attention".
 - The codebase has been sanitized to remove author names, emails, and repository URLs.
+
+## Acknowledgments
+
+This work is built upon the excellent open-source projects:
+- [flash-linear-attention](https://github.com/fla-org/flash-linear-attention): Linear attention layers and Triton kernel implementations
+- [flame](https://github.com/fla-org/flame): Training and experiment management framework
