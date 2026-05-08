@@ -1,4 +1,4 @@
-# MDN: Parallelizing Stepwise Momentum for Delta Linear Attention [ICML'26]
+# MDN: Parallelizing Stepwise Momentum for Delta Linear Attention ([ICML'26](https://arxiv.org/abs/2605.05838))
 
 Code release for **MDN: Parallelizing Stepwise Momentum for Delta Linear Attention**, accepted at **ICML 2026**.
 The implementation will be integrated into [flash-linear-attention](https://github.com/fla-org/flash-linear-attention) for broader community use.
